@@ -3,12 +3,13 @@ export function onBeforeCalculate(quote, lines, conn) {
         if(lines){
             return showAllOpps(quote,lines,conn);
         }else{
-			return Promise.resolve();
-		}
-	}	
+	    return Promise.resolve();
+	}
+}	
+
 function showAllOpps(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
-    let queryString = getOpportunitiesQueryString(accountId);  
+	let queryString = getOpportunitiesQueryString(accountId);  
 	return conn.query(queryString)
 		.then(function(results) {                       
 			if (results.totalSize) {
