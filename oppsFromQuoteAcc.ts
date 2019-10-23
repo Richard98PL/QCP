@@ -16,12 +16,14 @@ function showAllOpps(quote,lines,conn){
 				//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
 				let linesToSend = '';
 				Opps.forEach(function(opp){
-					linesToSend += opp["Name"] + '\\n';
+					linesToSend += opp["Name"] + "\\n";
 				});
 				quote.record['Opp_List__c'] = linesToSend;     
 				console.log(linesToSend);         
 		}
 	});
+	// IMPORTANT!!!! IN FORMULA HOLDER FOR TEXT AREA FIELD GIVE THIS FORMULA ->>>> SUBSTITUTE(Opp_List__c, ' \n', BR())
+	// because we send ' \\n ' which is read as ' \n ' and formula doesn't understand it.. it only understand BR() - breakline
 }
 
 function getQuoteAccountId(quote){
