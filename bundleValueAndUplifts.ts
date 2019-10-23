@@ -5,8 +5,7 @@ export function onInit(quoteLineModels) {
     return Promise.resolve();
 };
 
-export function onBeforeCalculate(quoteModel, quoteLineModels) {
-  
+export function onBeforeCalculate(quoteModel, quoteLineModels)
     return Promise.resolve();
 };
 
