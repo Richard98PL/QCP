@@ -23,8 +23,7 @@ function showAllOpps(quote,lines,conn){
 				console.log(linesToSend);         
 		}
 	});
-	// IMPORTANT!!!! IN FORMULA HOLDER FOR TEXT AREA FIELD GIVE THIS FORMULA ->>>> SUBSTITUTE(Opp_List__c, ' \n', BR())
-	// because we send ' \\n ' which is read as ' \n ' and formula doesn't understand it.. it only understand BR() - breakline
+	
 }
 
 function getQuoteAccountId(quote){
@@ -34,3 +33,8 @@ function getQuoteAccountId(quote){
 function getOpportunitiesQueryString(accountId){
 	return "SELECT Id, Name, (SELECT Id, Name FROM Opportunities) FROM Account WHERE Id = " + "'" + accountId + "'";
 }
+
+/*
+IMPORTANT!!!! IN FORMULA HOLDER FOR TEXT AREA FIELD GIVE THIS FORMULA ->>>> SUBSTITUTE(Opp_List__c, ' \n', BR())
+because we send ' \\n ' which is read as ' \n ' and formula doesn't understand it.. it only understand BR()
+*/
