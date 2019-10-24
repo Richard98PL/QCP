@@ -179,4 +179,6 @@ function getEffectiveQuantity(line) {
  * 
  * cons:
  * need to make custom field isParent__c on ql object
+ *
+ *ps: create Bundle_Level_Value__c on quote line
  */
