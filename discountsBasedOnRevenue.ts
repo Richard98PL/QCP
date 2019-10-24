@@ -51,7 +51,7 @@ function getQuoteAccountId(quote){
 }
 
 function getOpportunitiesQueryString(accountId){
-	return "SELECT Id, Name, (SELECT Id, Name, 	ExpectedRevenue FROM Opportunities) FROM Account WHERE Id = " + "'" + accountId + "'";
+	return "SELECT Id, Name, (SELECT Id, Name, ExpectedRevenue FROM Opportunities) FROM Account WHERE Id = " + "'" + accountId + "'";
 }
 
 function chooseDiscount(sumRevenue){
