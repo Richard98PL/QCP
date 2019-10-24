@@ -17,28 +17,28 @@ function showAllOppsWithoutCurrent(quote,lines,conn){
 			if (results.totalSize) {
 				let Opps = results.records[0].Opportunities.records;
 				//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
-				let linesToSend = '';
+				let linesToSend = "";
 				let sumRevenue = 0;
 				Opps.forEach(function(opp){
-					if(opp['Id'] != currentOppId){
-						linesToSend += opp["Name"] + ', Expected Revenue : ' + opp["ExpectedRevenue"] + "\\n";
+					if(opp["Id"] != currentOppId){
+						let expectedRevenue = opp["ExpectedRevenue"] || 0;
+						linesToSend += "\\n" + opp["Name"] + "\\n" + "Expected Revenue : " + expectedRevenue + "\\n";
 						sumRevenue += opp["ExpectedRevenue"];
 					}
 				});
-				linesToSend += 'Summary Revenue = ' + sumRevenue + "\\n";
+				linesToSend += "\\n" + "Summary Revenue = " + sumRevenue + "\\n";
 				let revenueDiscount = chooseDiscount(sumRevenue);
-				linesToSend += 'Revenue Discount = ' + revenueDiscount;
-				quote.record['Opp_List__c'] = linesToSend;  
+				linesToSend += "Revenue Discount = " + (revenueDiscount*100)+"%";
+				quote.record["Opp_List__c"] = linesToSend;  
 				doRevenueDiscounts(lines,revenueDiscount)    
-			}
-		});
+		}
+	});
 }
 
 function doRevenueDiscounts(lines,revenueDiscount){ 
     if (lines !== null) {
         lines.forEach(function (line) {  
-			let isPoT = line.PricingMethod__c == 'Percent Of Total' ? true : false;
-			console.log(isPoT);
+			let isPoT = line.PricingMethod__c == "Percent Of Total" ? true : false;
 			if(!isPoT) { 
 				line.record["SBQQ__NetPrice__c"] *= (1 - revenueDiscount);
 			}
