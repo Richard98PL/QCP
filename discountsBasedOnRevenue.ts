@@ -29,23 +29,19 @@ function showAllOppsWithoutCurrent(quote,lines,conn){
 				let revenueDiscount = chooseDiscount(sumRevenue);
 				linesToSend += 'Revenue Discount = ' + revenueDiscount;
 				quote.record['Opp_List__c'] = linesToSend;  
-				doRevenueDiscounts(lines,sumRevenue)    
+				doRevenueDiscounts(lines,revenueDiscount)    
 			}
 		});
 }
 
 function doRevenueDiscounts(lines,revenueDiscount){ 
-	console.log(lines);
-	console.log(revenueDiscount);
     if (lines !== null) {
         lines.forEach(function (line) {  
 			let isPoT = line.PricingMethod__c == 'Percent Of Total' ? true : false;
 			console.log(isPoT);
 			if(!isPoT) { 
-				line.record["SBQQ__NetPrice__c"] *= (1 + revenueDiscount);
-				console.log(line.record["SBQQ__NetPrice__c"]);
-				console.log(line.record["SBQQ__NetPrice__c"] *= (1 - revenueDiscount));
-			} 
+				line.record["SBQQ__NetPrice__c"] *= (1 - revenueDiscount);
+			}
 		}); 	      
 	}
 }
