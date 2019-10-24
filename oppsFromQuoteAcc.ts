@@ -37,4 +37,7 @@ function getOpportunitiesQueryString(accountId){
 /*
 IMPORTANT!!!! IN FORMULA HOLDER FOR TEXT AREA FIELD GIVE THIS FORMULA ->>>> SUBSTITUTE(Opp_List__c, ' \n', BR())
 because we send ' \\n ' which is read as ' \n ' and formula doesn't understand it.. it only understand BR()
+
+in order to this function work properly create field 'Opp_List__C' Text Area(255) at quote object and
+	Opp_List_Holder__c Formula(Text) at quote object also -> then add then second one to the quote field set
 */
