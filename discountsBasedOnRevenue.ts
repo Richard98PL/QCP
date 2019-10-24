@@ -26,7 +26,8 @@ function showAllOppsWithoutCurrent(quote,lines,conn){
 						sumRevenue += opp["ExpectedRevenue"];
 					}
 				});
-				linesToSend += "\\n" + "Summary Revenue = " + sumRevenue + "\\n";
+				linesToSend += "\\n" + "Summary Revenue = " + sumRevenue.toFixed(2) + "\\n";
+				// must be fixed(2) to have correct money value
 				let revenueDiscount = chooseDiscount(sumRevenue);
 				linesToSend += "Revenue Discount = " + (revenueDiscount*100)+"%";
 				quote.record["Opp_List__c"] = linesToSend;  
