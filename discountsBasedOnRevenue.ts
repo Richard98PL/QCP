@@ -10,9 +10,9 @@ export function onAfterCalculate(quote, lines, conn) {
 function showAllOppsWithoutCurrent(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
 	let currentOppId = getCurrentOppId(quote);
+
 	if(accountId){
 	let queryString = getOpportunitiesQueryString(accountId);  
-		// u can't get oppName like that... just Id.. idk why
 		return conn.query(queryString)
 			.then(function(results) {                       
 				if (results.totalSize) {
@@ -63,11 +63,11 @@ function getQuoteAccountId(quote){
 }
 
 function getCurrentOppId(quote){
-	let opp = quote.record["SBQQ__Opportunity__r"];
+	let opp = quote.record["SBQQ__Opportunity2__r"];
 	let result;
 
 	if(opp){
-		result = quote.record["SBQQ__Opportunity__r"]["Id"];
+		result = quote.record["SBQQ__Opportunity2__r"]["Id"];
 	}
 	return result;
 }
