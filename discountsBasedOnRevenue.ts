@@ -1,6 +1,6 @@
 export function onAfterCalculate(quote, lines, conn) {
     //must be onAfter if you edit net price!
-        if(lines){
+        if(lines.length){
             return showAllOppsWithoutCurrent(quote,lines,conn);
         }else{
 	    return Promise.resolve();
@@ -10,34 +10,39 @@ export function onAfterCalculate(quote, lines, conn) {
 function showAllOppsWithoutCurrent(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
 	let queryString = getOpportunitiesQueryString(accountId);  
-	let currentOppId= quote.record["SBQQ__Opportunity2__r"]["Id"];
-	// u can't get oppName like that... just Id.. idk why
-	return conn.query(queryString)
-		.then(function(results) {                       
-			if (results.totalSize) {
-				let Opps = results.records[0].Opportunities.records;
-				//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
-				let linesToSend = "";
-				let sumRevenue = 0;
-				Opps.forEach(function(opp){
-					if(opp["Id"] != currentOppId){
-						let expectedRevenue = opp["ExpectedRevenue"] || 0;
-						linesToSend += "\\n" + opp["Name"] + "\\n" + "Expected Revenue : " + expectedRevenue + "\\n";
-						sumRevenue += opp["ExpectedRevenue"];
-					}
-				});
-				linesToSend += "\\n" + "Summary Revenue = " + sumRevenue.toFixed(2) + "\\n";
-				// must be fixed(2) to have correct money value
-				let revenueDiscount = chooseDiscount(sumRevenue);
-				linesToSend += "Revenue Discount = " + (revenueDiscount*100)+"%";
-				quote.record["Opp_List__c"] = linesToSend;  
-				doRevenueDiscounts(lines,revenueDiscount)    
-		}
-	});
+
+	if(quote.record["SBQQ__Opportunity2__r"] && accountId){
+		let currentOppId= quote.record["SBQQ__Opportunity2__r"]["Id"];
+		// u can't get oppName like that... just Id.. idk why
+		return conn.query(queryString)
+			.then(function(results) {                       
+				if (results.totalSize) {
+					let Opps = results.records[0].Opportunities.records;
+					//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
+					let linesToSend = "";
+					let sumRevenue = 0;
+					Opps.forEach(function(opp){
+						if(opp["Id"] != currentOppId){
+							let expectedRevenue = opp["ExpectedRevenue"] || 0;
+							linesToSend += "\\n" + opp["Name"] + "\\n" + "Expected Revenue : " + expectedRevenue + "\\n";
+							sumRevenue += opp["ExpectedRevenue"];
+						}
+					});
+					linesToSend += "\\n" + "Summary Revenue = " + sumRevenue.toFixed(2) + "\\n";
+					// must be fixed(2) to have correct money value
+					let revenueDiscount = chooseDiscount(sumRevenue);
+					linesToSend += "Revenue Discount = " + (revenueDiscount*100)+"%";
+					quote.record["Opp_List__c"] = linesToSend;  
+					doRevenueDiscounts(lines,revenueDiscount)    
+			}
+		});
+	}else{
+		return Promise.resolve();
+	}
 }
 
 function doRevenueDiscounts(lines,revenueDiscount){ 
-    if (lines !== null) {
+    if (lines.length) {
         lines.forEach(function (line) {  
 			let isPoT = line.PricingMethod__c == "Percent Of Total" ? true : false;
 			if(!isPoT) { 
@@ -48,7 +53,13 @@ function doRevenueDiscounts(lines,revenueDiscount){
 }
 
 function getQuoteAccountId(quote){
-	return quote.record["SBQQ__Account__r"]["Id"];
+	let account = quote.record["SBQQ__Account__r"];
+	let result;
+
+	if(account){
+		result = quote.record["SBQQ__Account__r"]["Id"];
+	}
+	return result;
 }
 
 function getOpportunitiesQueryString(accountId){
