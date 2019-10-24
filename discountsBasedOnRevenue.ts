@@ -1,5 +1,5 @@
 export function onAfterCalculate(quote, lines, conn) {
-    //third argument is connection to our org??
+    //must be onAfter if you edit net price!
         if(lines){
             return showAllOpps(quote,lines,conn);
         }else{
@@ -26,8 +26,8 @@ function showAllOpps(quote,lines,conn){
 				linesToSend += 'Revenue Discount = ' + revenueDiscount;
 				quote.record['Opp_List__c'] = linesToSend;  
 				doRevenueDiscounts(lines,revenueDiscount)    
-		}
-	});
+			}
+		});
 }
 
 function doRevenueDiscounts(lines,revenueDiscount){ 
