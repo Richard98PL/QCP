@@ -9,10 +9,9 @@ export function onAfterCalculate(quote, lines, conn) {
 
 function showAllOppsWithoutCurrent(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
-
-	if(quote.record["SBQQ__Opportunity2__r"] && accountId){
-		let currentOppId= quote.record["SBQQ__Opportunity2__r"]["Id"];
-		let queryString = getOpportunitiesQueryString(accountId);  
+	let currentOppId = getCurrentOppId(quote);
+	if(accountId){
+	let queryString = getOpportunitiesQueryString(accountId);  
 		// u can't get oppName like that... just Id.. idk why
 		return conn.query(queryString)
 			.then(function(results) {                       
@@ -37,6 +36,7 @@ function showAllOppsWithoutCurrent(quote,lines,conn){
 			}
 		});
 	}else{
+		quote.record["Opp_List__c"] = 'Quote has no Account associated.';
 		return Promise.resolve();
 	}
 }
@@ -58,6 +58,16 @@ function getQuoteAccountId(quote){
 
 	if(account){
 		result = quote.record["SBQQ__Account__r"]["Id"];
+	}
+	return result;
+}
+
+function getCurrentOppId(quote){
+	let opp = quote.record["SBQQ__Opportunity__r"];
+	let result;
+
+	if(opp){
+		result = quote.record["SBQQ__Opportunity__r"]["Id"];
 	}
 	return result;
 }
