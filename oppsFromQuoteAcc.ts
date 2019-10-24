@@ -9,25 +9,35 @@ export function onBeforeCalculate(quote, lines, conn) {
 
 function showAllOpps(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
-	let queryString = getOpportunitiesQueryString(accountId);  
-	return conn.query(queryString)
-		.then(function(results) {                       
-			if (results.totalSize) {
-				let Opps = results.records[0].Opportunities.records;
-				//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
-				let linesToSend = '';
-				Opps.forEach(function(opp){
-					linesToSend += opp["Name"] + "\\n";
-				});
-				quote.record['Opp_List__c'] = linesToSend;     
-				console.log(linesToSend);         
-		}
-	});
-	
+	if(accountId){
+		let queryString = getOpportunitiesQueryString(accountId);  
+		return conn.query(queryString)
+			.then(function(results) {                       
+				if (results.totalSize) {
+					let Opps = results.records[0].Opportunities.records;
+					//weird but it is SOQL IN SOQL so we have records,totalSize and done TWICE :) So Opp is object, opp.records is array!
+					let linesToSend = '';
+					Opps.forEach(function(opp){
+						linesToSend += opp["Name"] + "\\n";
+					});
+					quote.record['Opp_List__c'] = linesToSend;     
+					console.log(linesToSend);         
+			}
+		});
+	}else{
+		quote.record["Opp_List__c"] = 'Quote has no Account associated.';
+		return Promise.resolve();
+	}
 }
 
 function getQuoteAccountId(quote){
-	return quote.record["SBQQ__Account__r"]["Id"];
+	let account = quote.record["SBQQ__Account__r"];
+	let result;
+
+	if(account){
+		result = quote.record["SBQQ__Account__r"]["Id"];
+	}
+	return result;
 }
 
 function getOpportunitiesQueryString(accountId){
