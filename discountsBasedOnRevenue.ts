@@ -1,15 +1,17 @@
 export function onAfterCalculate(quote, lines, conn) {
     //must be onAfter if you edit net price!
         if(lines){
-            return showAllOpps(quote,lines,conn);
+            return showAllOppsWithoutCurrent(quote,lines,conn);
         }else{
 	    return Promise.resolve();
 	}
 }	
 
-function showAllOpps(quote,lines,conn){
+function showAllOppsWithoutCurrent(quote,lines,conn){
 	let accountId = getQuoteAccountId(quote);
 	let queryString = getOpportunitiesQueryString(accountId);  
+	let currentOppId= quote.record["SBQQ__Opportunity2__r"]["Id"];
+	// u can't get oppName like that... just Id.. idk why
 	return conn.query(queryString)
 		.then(function(results) {                       
 			if (results.totalSize) {
@@ -18,14 +20,16 @@ function showAllOpps(quote,lines,conn){
 				let linesToSend = '';
 				let sumRevenue = 0;
 				Opps.forEach(function(opp){
-					linesToSend += opp["Name"] + ', Expected Revenue : ' + opp["ExpectedRevenue"] + "\\n";
-					sumRevenue += opp["ExpectedRevenue"];
+					if(opp['Id'] != currentOppId){
+						linesToSend += opp["Name"] + ', Expected Revenue : ' + opp["ExpectedRevenue"] + "\\n";
+						sumRevenue += opp["ExpectedRevenue"];
+					}
 				});
 				linesToSend += 'Summary Revenue = ' + sumRevenue + "\\n";
 				let revenueDiscount = chooseDiscount(sumRevenue);
 				linesToSend += 'Revenue Discount = ' + revenueDiscount;
 				quote.record['Opp_List__c'] = linesToSend;  
-				doRevenueDiscounts(lines,revenueDiscount)    
+				doRevenueDiscounts(lines,sumRevenue)    
 			}
 		});
 }
@@ -59,7 +63,7 @@ function chooseDiscount(sumRevenue){
 		return -0.1;
 	}else if (sumRevenue > 400){
 		return 0.2;
-	}
+	}else return 0;
 }
 
 /*
