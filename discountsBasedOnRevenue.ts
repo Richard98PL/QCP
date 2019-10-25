@@ -23,7 +23,7 @@ function showAllOppsWithoutCurrent(quote,lines,conn){
 					Opps.forEach(function(opp){
 						if(opp["Id"] != currentOppId){
 							let expectedRevenue = opp["ExpectedRevenue"] || 0;
-							linesToSend += "\\n" + opp["Name"] + "\\n" + "Expected Revenue : " + expectedRevenue + "\\n";
+							linesToSend += "\\n" + opp["Name"] + "\\n" + "Expected Revenue : " + expectedRevenue.toFixed(2) + "\\n";
 							sumRevenue += opp["ExpectedRevenue"];
 						}
 					});
