@@ -1,2 +1,1 @@
-# bundleValueAndUpliftsQCP
-bundleValueAndUpliftsQCP
+allMYQCP scripts
