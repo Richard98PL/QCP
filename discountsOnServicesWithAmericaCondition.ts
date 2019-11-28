@@ -2,13 +2,13 @@ export function onAfterCalculate(quote, lines) {
 
   setDiscountOnServices(
                        lines,
-                       calculateServicesQuantity(quote,lines)
+                       calculateServicesQuantity(lines)
                        );
 
  return Promise.resolve();
 };
 
-function calculateServicesQuantity(quote,lines){
+function calculateServicesQuantity(lines){
    let servicesQuantity = 0;
    let doubleBundle3LinesSet = new Set();
 
@@ -42,6 +42,7 @@ function setDiscountOnServices(lines,servicesQuantity){
    case 3: discount = 0.17; break;
    case 4: discount = 0.19; break;
    case 5: discount = 0.2; break;
+   default: discount = 0.3; break;
  }
  
  lines.forEach(function(line){
