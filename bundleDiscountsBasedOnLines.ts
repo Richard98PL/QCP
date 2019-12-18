@@ -99,9 +99,7 @@ function getTierDiscount(quantityOfG3CLines){
         }    
       },     
       isBetween : function(number,lowerBound,upperBound){
-        if(number >= lowerBound && ( number <= upperBound || upperBound == 'noLimit') ){
-            return true;
-        }else return false;
+        return number >= lowerBound && ( number <= upperBound || upperBound == 'noLimit');      
   }
 }
 
