@@ -1,103 +1,113 @@
-export function onInit(lines) {
-    /* very important don't delete */
-    lines.forEach(function(line){
-        line.record["Bundle_Level_Value__c"] = 0;
-    });
-	/* _________________ */
-  return Promise.resolve();
-};
+//HEY!
+//G3C -> G C C C -> GIS CITY / COUNTRY / CUSTOM
+
 
 export function onAfterCalculate(quote, lines) {
-    fillBundlesLevelTotal(lines);
+  setG3CDiscounts(lines);
   return Promise.resolve();
 };
 
-function fillBundlesLevelTotal(lines){
+function setG3CDiscounts(lines){
+  let parentsOfG3CWithChildrenQuantities = getG3CParentsWithItsChildrenQuantities(lines);
 
-  if(lines.length){
-    lines.forEach(function(line){
-      //first set starting bundle value
-      if(line.record["SBQQ__Bundle__c"]){
-        line.record["Bundle_Level_Value__c"] += line.record["SBQQ__NetPrice__c"];
+  lines.forEach(function(line){
+      let lineParent = line.parentItem;
+      if(line.parentItem != null){
+        let isChildrenOfDiscountableBundle = parentsOfG3CWithChildrenQuantities.has(lineParent);
+
+        if(isChildrenOfDiscountableBundle){
+            let discount = getTierDiscount(parentsOfG3CWithChildrenQuantities.get(lineParent));
+            line.record["SBQQ__NetPrice__c"] *= 1-discount; 
+        }
       }
-    });
-  }
+ });
+}
+
+function getG3CParentsWithItsChildrenQuantities(lines){
+  let G3CNamesSet = new Set( ["GIS City","GIS Country","GIS Custom"] );
+  let parentsOfG3CWithItsChildrenQuantities = new Map();
   
-  lines.sort((a,b) => (a.record["SBQQ__OptionLevel__c"] < b.record["SBQQ__OptionLevel__c"] ? 1: -1));
-  if (lines.length) {
-        lines.forEach(function(line){
-          if(line.parentItem != null){
-            let lineParent = line.parentItem;
-            let lineTotalPrice = getTotalPrice(line);
-            if(line.record["Bundle_Level_Value__c"] == 0){
-              lineParent.record["Bundle_Level_Value__c"] += lineTotalPrice;
-            }
-            else{
-                lineParent.record["Bundle_Level_Value__c"] += line.record["Bundle_Level_Value__c"]; 
-              }
+   lines.forEach(function(line){
+       let lineParent = line.parentItem;
+        if(line.parentItem != null){
+        let isLineG3C = G3CNamesSet.has(line.record["SBQQ__Product__r"]["Family"]);
+
+        if(isLineG3C){
+
+            if(!parentsOfG3CWithItsChildrenQuantities.has(lineParent)){
+                parentsOfG3CWithItsChildrenQuantities.set(lineParent,1);
             }
             
-        });
+            else{
+                parentsOfG3CWithItsChildrenQuantities.set(
+                    lineParent,
+                    parentsOfG3CWithItsChildrenQuantities.get(lineParent) + 1 //incrementing by one
+                );
+            }   
+        }
       }
+    });
 
+   return parentsOfG3CWithItsChildrenQuantities;
 }
 
-function getTotalPrice(line) {
-  /*
-  Short-circuit evaluation, minimal evaluation, or McCarthy evaluation (after John McCarthy) is the semantics of some Boolean operators in some programming languages in which the second argument is executed or evaluated only if the first argument does not suffice to determine the value of the expression
-  */
-  let netPrice = line.record["SBQQ__NetPrice__c"] || 0; 
-  let priorQuantity = line.PriorQuantity__c || 0;
-  let renewal = line.Renewal__c || false;
-  let existing = line.Existing__c || false;
-  if ((renewal === true) && (existing === false) && (priorQuantity == null)) {
-	  // Personal note: In onAfterCalculate, we specifically make sure that priorQuantity can't be null.
-	  // So isn't this loop pointless?
-	  return 0;
-  } else {
-	  return netPrice * getEffectiveQuantity(line);
+function getTierDiscount(quantityOfG3CLines){
+    
+  const tier = {
+
+      tiersArray : new Array(
+        {TierLowerBound : 2,
+        TierUpperBound : 5,
+        TierName : 'Tier 1',
+        TierDiscount : 0.15},
+
+        {TierLowerBound : 6,
+        TierUpperBound : 10,
+        TierName : 'Tier 2',
+        TierDiscount : 0.40},
+
+        {TierLowerBound : 11,
+        TierUpperBound : 15,
+        TierName : 'Tier 3',
+        TierDiscount : 0.50},
+
+        {TierLowerBound : 16,
+        TierUpperBound : 20,
+        TierName : 'Tier 4',
+        TierDiscount : 0.60},
+
+        {TierLowerBound : 21,
+        TierUpperBound : 30,
+        TierName : 'Tier 5',
+        TierDiscount : 0.70},
+
+        {TierLowerBound : 31,
+        TierUpperBound : 40,
+        TierName : 'Tier 6',
+        TierDiscount : 0.75},
+
+        {TierLowerBound : 41,
+        TierUpperBound : 'noLimit',
+        TierName : 'Tier 7',
+        TierDiscount : 0.78},
+      ),       
+      getDiscount : function(number){
+        for(let i = 0 ; i < tier.tiersArray.length ; i++){
+         if(tier.isBetween(number, tier.tiersArray[i].TierLowerBound, tier.tiersArray[i].TierUpperBound)){
+            return tier.tiersArray[i].TierDiscount;
+         }
+        }    
+      },     
+      isBetween : function(number,lowerBound,upperBound){
+        if(number >= lowerBound && ( number <= upperBound || upperBound == 'noLimit') ){
+            return true;
+        }else return false;
   }
 }
 
-function getEffectiveQuantity(line) {
-  let listPrice = line.ProratedListPrice__c || 0;
-  let quantity = line.Quantity__c == null ? 1 : line.Quantity__c;
-  let priorQuantity = line.PriorQuantity__c || 0;
-  let pricingMethod = line.PricingMethod__c == null ? "List" : line.PricingMethod__c;
-  let discountScheduleType = line.DiscountScheduleType__c || '';
-  let renewal = line.Renewal__c || false;
-  let existing = line.Existing__c || false;
-  let subscriptionPricing = line.SubscriptionPricing__c || '';
-  let delta = quantity - priorQuantity;
-
-  if (pricingMethod == 'Block' && delta == 0) {
-	  return 0;
-  } else if (pricingMethod == 'Block') {
-	  return 1;
-  } else if (discountScheduleType == 'Slab' && (delta == 0 || (quantity == 0 && renewal == true))) {
-	  return 0;
-  } else if (discountScheduleType == 'Slab') {
-	  return 1;
-  } else if (existing == true && subscriptionPricing == '' && delta < 0) {
-	  return 0;
-  } else if (existing == true && subscriptionPricing == 'Percent Of Total' && listPrice != 0 && delta >= 0) {
-	  return quantity;
-  } else if (existing == true) {
-	  return delta;
-  } else {
-	  return quantity;
-  }
+  return tier.getDiscount(quantityOfG3CLines) || 0;
 }
 
-/**
-* pros and cons
-* pros : 
-* works.....
-* not using global letiables or session storage
-* not using additional discount
-* 
-* cons:
-* need to make custom field isParent__c on ql object
-*
-*ps: create Bundle_Level_Value__c on quote line
-*/
+
+
+
