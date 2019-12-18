@@ -2,7 +2,7 @@ function getTierDiscount(quantityOfG3CLines){
     
   const tier = {
 
-      tiersArray : new Array(
+      tiersArray : [
         {TierLowerBound : 2,
         TierUpperBound : 5,
         TierName : 'Tier 1',
@@ -37,18 +37,13 @@ function getTierDiscount(quantityOfG3CLines){
         TierUpperBound : 'noLimit',
         TierName : 'Tier 7',
         TierDiscount : 0.78},
-      ),       
-      getDiscount : function(number){
-        for(let i = 0 ; i < tier.tiersArray.length ; i++){
-         if(tier.isBetween(number, tier.tiersArray[i].TierLowerBound, tier.tiersArray[i].TierUpperBound)){
-            return tier.tiersArray[i].TierDiscount;
-         }
-        }    
-      },     
-      isBetween : function(number,lowerBound,upperBound){
-        return number >= lowerBound && ( number <= upperBound || upperBound == 'noLimit');      
-  }
-}
-
-  return tier.getDiscount(quantityOfG3CLines) || 0;
+        ],       
+        getDiscount : function(number){
+          return tier.tiersArray.filter(function(object){
+            let isBetween = number >= object.TierLowerBound && ( number <= object.TierUpperBound || object.TierUpperBound  == 'noLimit')  
+            return isBetween;
+          }).values().next().value.TierDiscount
+        }          
+    }
+  return tier.getDiscount(quantityOfG3CLines);
 }
