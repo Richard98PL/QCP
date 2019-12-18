@@ -92,11 +92,13 @@ function getTierDiscount(quantityOfG3CLines){
         TierDiscount : 0.78},
         ],       
         getDiscount : function(number){
-          return tier.tiersArray.filter(function(object){
+          let foundTier =  tier.tiersArray.filter(function(object){
             let isBetween = number >= object.TierLowerBound && ( number <= object.TierUpperBound || object.TierUpperBound  == 'noLimit')  
             return isBetween;
-          }).values().next().value.TierDiscount
-        }          
+          }).values().next().value;
+          
+          return foundTier ? foundTier.TierDiscount : 0;
+        }             
     }
   return tier.getDiscount(quantityOfG3CLines);
 }
