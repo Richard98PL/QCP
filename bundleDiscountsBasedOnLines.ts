@@ -87,7 +87,7 @@ export function onAfterCalculate(quote, lines) {
           TierName : 'Tier 7',
           TierDiscount : 0.78},
         ),       
-        checkWhichTier : function(number){
+        getDiscount : function(number){
           for(let i = 0 ; i < tier.tiersArray.length ; i++){
            if(tier.isBetween(number, tier.tiersArray[i].TierLowerBound, tier.tiersArray[i].TierUpperBound)){
               return tier.tiersArray[i].TierDiscount;
@@ -101,7 +101,7 @@ export function onAfterCalculate(quote, lines) {
     }
   }
  
-    return tier.checkWhichTier(quantityOfG3CLines) || 0;
+    return tier.getDiscount(quantityOfG3CLines) || 0;
   }
 
 
